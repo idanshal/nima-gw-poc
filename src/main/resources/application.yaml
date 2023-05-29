@@ -18,6 +18,10 @@ server:
   port: 9999
 
 gw:
+  http-client:
+    connection-queue-size: 1000
+  auth:
+    jwk-source-url: https://login.microsoftonline.com/e741d71c-c6b6-47b0-803c-0f3b32b07556/discovery/v2.0/keys
   routes:
     - uri: http://localhost:8081
       path: /ms1

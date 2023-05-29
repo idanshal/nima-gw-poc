@@ -3,6 +3,7 @@
 //import java.util.Arrays;
 //
 //import io.helidon.common.http.Http;
+//import io.helidon.config.Config;
 //import io.helidon.nima.testing.junit5.webserver.SetUpRoute;
 //import io.helidon.nima.webclient.http1.Http1Client;
 //import io.helidon.nima.webclient.http1.Http1ClientResponse;
@@ -18,15 +19,18 @@
 //
 //abstract class AbstractGatewayServiceTest {
 //    private final Http1Client client;
+//    private final Config config;
 //
 //    protected AbstractGatewayServiceTest(Http1Client client) {
+//        Config config = Config.create();
 //        this.client = client;
+//        this.config = config;
 //        //GatewayService.client(client);
 //    }
 //
 //    @SetUpRoute
-//    static void routing(HttpRouting.Builder builder) {
-//        NimaMain.routing(builder);
+//    void routing(HttpRouting.Builder builder) {
+//        NimaMain.routing(builder,new GatewayService(this.client,NimaMain.initRouteMapFromConfig(this.config)));
 //    }
 //
 //    @Test

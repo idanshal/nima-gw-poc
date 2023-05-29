@@ -7,34 +7,46 @@ import io.helidon.nima.webserver.http.HttpRules;
 import io.helidon.nima.webserver.http.HttpService;
 import io.helidon.nima.webserver.http.ServerRequest;
 import io.helidon.nima.webserver.http.ServerResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import static io.helidon.common.http.Http.HeaderValues.CONNECTION_CLOSE;
+import static io.helidon.common.http.Http.Header.AUTHORIZATION;
 import static io.helidon.common.http.Http.HeaderValues.CONTENT_LENGTH_ZERO;
 
+@RequiredArgsConstructor
+@Slf4j
 class GatewayService implements HttpService {
     private static final String PATH_DELIMITER = "/";
     private static final String WILDCARD_PATH = "**";
 
     private final Http1Client client;
     private final Map<String, String> routeMap;
-
-    GatewayService(Http1Client client, Map<String, String> routeMap) {
-        this.client = client;
-        this.routeMap = routeMap;
-    }
+    private final String jwkSourceUrl;
 
     @Override
     public void routing(HttpRules httpRules) {
         this.routeMap.keySet().forEach(path ->
-                httpRules.any(path + WILDCARD_PATH, this::handle));
+                httpRules.any(path + WILDCARD_PATH, this::authMiddleware, this::handle));
     }
 
     private String dispatchUri(String path) {
         return this.routeMap.get(path);
+    }
+
+    private void authMiddleware(ServerRequest req, ServerResponse res) {
+        String token = req.headers().get(AUTHORIZATION).value().split(" ")[1];
+
+        if (!JwtService.verify(token, this.jwkSourceUrl)) {
+            res.status(Http.Status.UNAUTHORIZED_401);
+            res.send();
+            return;
+        }
+
+        res.next();
     }
 
     private void handle(ServerRequest req, ServerResponse res) throws IOException {
@@ -77,3 +89,4 @@ class GatewayService implements HttpService {
         }
     }
 }
+
