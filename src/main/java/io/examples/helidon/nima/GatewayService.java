@@ -30,7 +30,9 @@ class GatewayService implements HttpService {
     @Override
     public void routing(HttpRules httpRules) {
         this.routeMap.keySet().forEach(path ->
-                httpRules.any(path + WILDCARD_PATH, this::authMiddleware, this::handle));
+                httpRules.any(path + WILDCARD_PATH, this::handle));
+
+        httpRules.get("/auth-example", this::authMiddleware, (req,res) -> res.send("success!"));
     }
 
     private String dispatchUri(String path) {

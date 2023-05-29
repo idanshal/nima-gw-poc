@@ -22,21 +22,19 @@ import java.text.ParseException;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class JwtService {
-    public static boolean verify(String token, String jwkSetUrl) {
+    public static boolean verify(String token, String jwkSourceUrl) {
         try {
             DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-            JWKSource<SecurityContext> keySource = JWKSourceBuilder.create(new URI(jwkSetUrl).toURL()).build();
+            JWKSource<SecurityContext> keySource = JWKSourceBuilder.create(URI.create(jwkSourceUrl).toURL()).build();
             JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
             JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
             jwtProcessor.setJWSKeySelector(keySelector);
             JWTClaimsSet claimsSet = jwtProcessor.process(token, null);
             log.info(claimsSet.toJSONObject().toString());
             return true;
-        } catch (ParseException | BadJOSEException | JOSEException e) {
-            e.printStackTrace();
+        } catch (ParseException | BadJOSEException | JOSEException | MalformedURLException e) {
+            log.error(e.getMessage());
             return false;
-        } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e);
         }
     }
 }
